@@ -60,12 +60,12 @@ class ES6Generator(val schema: Schema) {
                 for (field in type.fields()) {
                   val name = field.name()
                   if (field.isRepeated) {
-                    validate.beginBlock("if (!Array.isArray(this.$name) && (typeof this.$name) !== 'undefined') {")
+                    validate.beginBlock("if (!Array.isArray(this.$name) ${if (!field.isRequired) "&& (typeof this.$name) !== 'undefined'" else ""}) {")
                     validate.addStatement("throw Error('$name must be an array or undefined, but was ' + (typeof this.$name))")
                     validate.endBlock("}")
                   } else {
                     val jsType = typeMap[field.type()]
-                    validate.beginBlock("if ((typeof this.$name) !== '$jsType' && (typeof this.$name) !== 'undefined') {")
+                    validate.beginBlock("if ((typeof this.$name) !== '$jsType' ${if (!field.isRequired) "&& (typeof this.$name) !== 'undefined'" else ""}) {")
                     validate.addStatement("throw Error('$name must be a $jsType or undefined, but was ' + (typeof this.$name))")
                     validate.endBlock("}")
                   }

@@ -49,8 +49,8 @@ module.exports.Foo = class Foo {
     if ((typeof this.bar) !== 'string' && (typeof this.bar) !== 'undefined') {
       throw Error('bar must be a string or undefined, but was ' + (typeof this.bar))
     }
-    if ((typeof this.bar) !== 'number' && (typeof this.bar) !== 'undefined') {
-      throw Error('bar must be a number or undefined, but was ' + (typeof this.bar))
+    if ((typeof this.baz) !== 'number' && (typeof this.baz) !== 'undefined') {
+      throw Error('baz must be a number or undefined, but was ' + (typeof this.baz))
     }
   }
   
