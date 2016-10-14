@@ -8,6 +8,24 @@ import java.nio.file.FileSystem
 
 class ES6Generator(val schema: Schema) {
 
+  val typeMap = mapOf(
+      Pair(ProtoType.BOOL, "boolean"),
+      Pair(ProtoType.BYTES, "object"),
+      Pair(ProtoType.DOUBLE, "number"),
+      Pair(ProtoType.FLOAT, "number"),
+      Pair(ProtoType.FIXED32, "number"),
+      Pair(ProtoType.FIXED64, "number"),
+      Pair(ProtoType.INT32, "number"),
+      Pair(ProtoType.INT64, "number"),
+      Pair(ProtoType.SFIXED32, "number"),
+      Pair(ProtoType.SFIXED64, "number"),
+      Pair(ProtoType.SINT32, "number"),
+      Pair(ProtoType.SINT64, "number"),
+      Pair(ProtoType.STRING, "string"),
+      Pair(ProtoType.UINT32, "number"),
+      Pair(ProtoType.UINT64, "number")
+  )
+
   fun generate(out: Appendable) {
     val emitter = CodeEmitter(out)
 
@@ -38,15 +56,27 @@ class ES6Generator(val schema: Schema) {
                 from.addStatement(StatementSpec("return new ${typeClass.name}(${params.joinToString()})"))
                 typeClass.addMethod(from)
 
-                val toJson = MethodSpec("toJSON")
-                toJson.addStatement("return {")
-                for (field in params) {
-                  val statement = "$field: this.$field${if (field == params.last()) "" else ","}"
-                  if (field == params.first()) {
-                    toJson.beginBlock(statement)
+                val validate = MethodSpec("validate")
+                for (field in type.fields()) {
+                  val name = field.name()
+                  if (field.isRepeated) {
+                    validate.beginBlock("if (!Array.isArray(this.$name) && (typeof this.$name) !== 'undefined') {")
+                    validate.addStatement("throw Error('$name must be an array or undefined, but was ' + (typeof this.$name))")
+                    validate.endBlock("}")
                   } else {
-                    toJson.addStatement(statement)
+                    val jsType = typeMap[field.type()]
+                    validate.beginBlock("if ((typeof this.$name) !== '$jsType' && (typeof this.$name) !== 'undefined') {")
+                    validate.addStatement("throw Error('$name must be a $jsType or undefined, but was ' + (typeof this.$name))")
+                    validate.endBlock("}")
                   }
+                }
+                typeClass.addMethod(validate)
+
+                val toJson = MethodSpec("toJSON")
+                toJson.addStatement("this.validate()")
+                toJson.beginBlock("return {")
+                for (field in params) {
+                  toJson.addStatement("$field: this.$field${if (field == params.last()) "" else ","}")
                 }
                 toJson.endBlock("}")
                 typeClass.addMethod(toJson)

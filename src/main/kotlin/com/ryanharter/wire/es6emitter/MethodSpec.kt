@@ -13,12 +13,12 @@ class MethodSpec(val name: String,
   }
 
   fun beginBlock(statement: String): MethodSpec {
-    body += StatementSpec(statement, 1)
+    body += StatementSpec(statement, 0, 1)
     return this
   }
 
   fun endBlock(statement: String): MethodSpec {
-    body += StatementSpec(statement, -1)
+    body += StatementSpec(statement, -1, 0)
     return this
   }
 
